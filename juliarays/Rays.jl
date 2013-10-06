@@ -87,15 +87,6 @@ const HIT        = 2
 const NOHIT_DOWN = 1
 const NOHIT_UP   = 0
 
-const CAMERA_VEC    = Vec{Float64}(17.0, 16.0, 8.0)
-const DEFAULT_COLOR = Vec{Float64}(13.0, 13.0, 13.0)
-
-const EMPTY_VEC = Vec{Float64}()
-const SKY_VEC   = Vec{Float64}(1.0, 1.0, 1.0)
-const STD_VEC   = Vec{Float64}(0.0, 0.0, 1.0)
-const FLOOR_PATTERN1  = Vec{Float64}(3.0, 1.0, 1.0)
-const FLOOR_PATTERN2  = Vec{Float64}(3.0, 3.0, 3.0)
-
 macro inline_dot(expr::Expr)
     if expr.head == :call && expr.args[1] == :dot
 	quote
@@ -115,12 +106,12 @@ function intersect_test{T<:FloatingPoint}(orig::Vec{T}, dir::Vec{T})
     dist = 1e9
     st = NOHIT_UP
     p = -orig.z / dir.z
-    bounce = EMPTY_VEC
+    bounce = Vec{Float64}()
     
     # downward ray
     if (0.01 < p)
         dist = p
-        bounce = STD_VEC
+        bounce = Vec{Float64}(0.0, 0.0, 1.0)
         st = NOHIT_DOWN
     end 
 
@@ -165,7 +156,7 @@ function sample_world{T<:FloatingPoint}(orig::Vec{T}, dir::Vec{T})
         # p ^= 4
         p = p * p 
         p = p * p 
-  	return SKY_VEC * p
+  	return Vec{Float64}(1.0, 1.0, 1.0) * p
     end
 
     # sphere was maybe hit
@@ -190,7 +181,8 @@ function sample_world{T<:FloatingPoint}(orig::Vec{T}, dir::Vec{T})
     
     if st == NOHIT_DOWN
         h = h * 0.2
-        pattern = isodd(int(ceil(h.x) + ceil(h.y))) ? FLOOR_PATTERN1 : FLOOR_PATTERN2
+        pattern = isodd(int(ceil(h.x) + ceil(h.y))) ?
+		 	Vec{Float64}(3.0, 1.0, 1.0) : Vec{Float64}(3.0, 3.0, 3.0)
         return pattern * (b * 0.2 + 0.1)
     end
 
@@ -224,7 +216,7 @@ function main(width::Int64, height::Int64)
     const g = unit(Vec{Float64}(-6.75, -16.0, 1.0))
     
     # camera up vector
-    const a = unit(cross(STD_VEC, g)) * 0.002
+    const a = unit(cross(Vec{Float64}(0.0, 0.0, 1.0), g)) * 0.002
     
     # right vector 
     const b = unit(cross(g, a)) * 0.002 
@@ -233,9 +225,10 @@ function main(width::Int64, height::Int64)
     const size = 3 * width * height
     bytes = Array(Uint8, size)
     
+    default_color = Vec{Float64}(13.0, 13.0, 13.0) 
     for y in 0:(height - 1)
         for x in 0:(width - 1)
-            p = DEFAULT_COLOR
+            p = default_color
             # cast 64 rays per pixel
             # (for blur (stochastic sampling) and soft shadows)
             for _ in 1:64
@@ -243,7 +236,7 @@ function main(width::Int64, height::Int64)
                 t = (a * (rand() - 0.5) * 99.0) + (b * (rand() - 0.5) * 99.0)
                 # set the camera focal point (17,16,8) and cast the ray
                 # accumulate the color returned in the p variable
-                orig = CAMERA_VEC + t
+                orig = Vec{Float64}(17.0, 16.0, 8.0) + t
                 dir = ((-1.0 * t) + (a * (rand() + float(x)) + 
                                      b * (rand() + float(y)) + c) * 16.0)
                 dir = unit(dir)
