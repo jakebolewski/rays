@@ -43,7 +43,7 @@ function parse_commandline()
 end
 
 
-function object_array(art::Array{Any,1})
+function object_array(art::Array)
     nr = length(art)
     objs = Array(Rays.Vec{Float64}, 0)
     for (j, line) in enumerate(art)
@@ -104,7 +104,7 @@ function main()
         if nworkers() == nprocs()
             if profile && t > 1 
                # single process case
-	       @profile Rays.render!(pixels, size)
+               @profile Rays.render!(pixels, size)
             else
                Rays.render!(art_object, pixels, size)
 	    end
@@ -112,7 +112,7 @@ function main()
             # multiprocess case
             remotes = {}
             chunk_idxs = iround(linspace(1, size+1, nworkers()+1))
-            # image is raytraced with origin defined as bottom left of image
+            # image is raytraced with origin defined as bottom left of the array
             for wid in 1:nworkers()
                 lr, ur = chunk_idxs[wid], chunk_idxs[wid+1]-1
                 ref = remotecall(wid+1, Rays.render, art_object, size, lr, ur) 

@@ -163,7 +163,7 @@ function sample_world{T<:FloatingPoint}(objects::Vector{Vec{T}},
     # calculate the color p with diffuse and specular component
     p = dot(l, r * (b > 0.0 ? 1.0 : 0.0))
     p ^= 33
-    
+
     # st == HIT a sphere was hit. cast a ray bouncing from sphere surface
     return RGB{T}(p, p, p) + sample_world(objects, h, r) * 0.5
 end
@@ -171,7 +171,7 @@ end
 
 function render(objects::Vector{Vec{Float64}},
 		size::Integer, lr::Integer, ur::Integer)
-    
+
     # camera direction
     cam_dir = unit(Vec{Float64}(-3.1, -16.0, 1.9))
 
@@ -184,7 +184,7 @@ function render(objects::Vector{Vec{Float64}},
 
     # aspect ratio
     ar = 512.0 / size
-    
+
     pixels = Array(RGB{Uint8}, (ur - lr + 1) * size)
 
     for y in (lr - 1):(ur - 1)
